@@ -37,20 +37,28 @@ document.addEventListener('DOMContentLoaded', () => {
         danGrid.appendChild(btn);
     }
 
-    // 2. 順序選択
-    orderBtns.forEach(btn => {
-        btn.onclick = () => {
-            if (btn.dataset.order) {
-                document.querySelectorAll('.order-btn[data-order]').forEach(b => b.classList.remove('selected'));
+    // 2. 順序・音声設定のハンドリング
+    function setupToggleButtons() {
+        const orderButtons = document.querySelectorAll('.order-btn[data-order]');
+        orderButtons.forEach(btn => {
+            btn.onclick = () => {
+                orderButtons.forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
                 state.selectedOrder = btn.dataset.order;
-            } else if (btn.dataset.voice) {
-                document.querySelectorAll('.order-btn[data-voice]').forEach(b => b.classList.remove('selected'));
+            };
+        });
+
+        const voiceButtons = document.querySelectorAll('.order-btn[data-voice]');
+        voiceButtons.forEach(btn => {
+            btn.onclick = () => {
+                voiceButtons.forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
                 state.isVoiceEnabled = btn.dataset.voice === 'true';
-            }
-        };
-    });
+                if (state.isVoiceEnabled) speak("オン");
+            };
+        });
+    }
+    setupToggleButtons();
 
     // 3. クイズ開始
     startBtn.onclick = startQuiz;
@@ -87,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
         problemText.textContent = p.q;
         answerDisplay.textContent = '?';
         state.userInput = '';
-        
+
         // 読み上げ
         if (state.isVoiceEnabled) {
             const dan = p.q.split(' × ')[0];
@@ -103,11 +111,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // 音声読み上げ
     function speak(text) {
         if (!window.speechSynthesis) return;
-        window.speechSynthesis.cancel(); // 前の音声を止める
+
+        // ブラウザの音声再生制限を回避するためのリセット
+        if (speechSynthesis.paused) {
+            speechSynthesis.resume();
+        }
+        window.speechSynthesis.cancel();
+
         const uttr = new SpeechSynthesisUtterance(text);
         uttr.lang = 'ja-JP';
-        uttr.rate = 1.1; // 少し速めに
+        uttr.rate = 1.1;
+
+        // 利用可能な音声が読み込まれるまで待つ必要があるブラウザ向けの対策
+        const voices = speechSynthesis.getVoices();
+        if (voices.length > 0) {
+            // 日本語の音声を探す
+            const jaVoice = voices.find(v => v.lang.includes('ja-JP')) || voices.find(v => v.lang.includes('ja'));
+            if (jaVoice) uttr.voice = jaVoice;
+        }
+
         window.speechSynthesis.speak(uttr);
+    }
+
+    // 音声リストの初期読み込み
+    window.speechSynthesis?.getVoices();
+    if (window.speechSynthesis?.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
     }
 
     // 4. 入力処理
