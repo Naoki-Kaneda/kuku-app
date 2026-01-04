@@ -168,6 +168,15 @@ document.addEventListener('DOMContentLoaded', () => {
         window.speechSynthesis.speak(uttr);
     }
 
+    function showFeedback(isCorrect) {
+        if (!feedbackOverlay) return;
+        feedbackOverlay.textContent = isCorrect ? '⭕' : '❌';
+        feedbackOverlay.className = 'feedback active ' + (isCorrect ? 'correct' : 'incorrect');
+        setTimeout(() => {
+            feedbackOverlay.classList.remove('active');
+        }, 800);
+    }
+
     // 表示切り替え
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
