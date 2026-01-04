@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>九九マスタープレミアム</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=Outfit:wght@800&display=swap"
+        rel="stylesheet">
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f172a">
+</head>
+
+<body>
+    <div class="app-container">
+        <header>
+            <h1>九九マスター</h1>
+            <div class="sub-title">Premium Learning App</div>
+        </header>
+
+        <!-- 設定画面 -->
+        <div id="setup-screen" class="screen glass-panel active">
+            <div style="margin-bottom: 20px;">
+                <h2 style="font-size: 1.1rem; margin-bottom: 15px;">段を選ぼう</h2>
+                <div class="selection-grid" id="dan-selection">
+                    <!-- JSで生成 -->
+                </div>
+            </div>
+
+            <div>
+                <h2 style="font-size: 1.1rem; margin-bottom: 15px;">順番を選ぼう</h2>
+                <div class="order-selection">
+                    <button class="order-btn selected" data-order="random">ランダム</button>
+                    <button class="order-btn" data-order="asc">上から</button>
+                    <button class="order-btn" data-order="desc">下から</button>
+                </div>
+            </div>
+
+            <button id="start-btn" class="action-btn" style="margin-top: auto;">スタート！</button>
+        </div>
+
+        <!-- クイズ画面 -->
+        <div id="quiz-screen" class="screen glass-panel">
+            <div class="progress-container">
+                <div class="progress-bar" id="progress"></div>
+            </div>
+
+            <div class="quiz-card">
+                <div id="problem-text" class="problem">8 × 7</div>
+                <div id="answer-display" class="answer-area">?</div>
+            </div>
+
+            <div class="numpad">
+                <button class="num-btn" data-val="1">1</button>
+                <button class="num-btn" data-val="2">2</button>
+                <button class="num-btn" data-val="3">3</button>
+                <button class="num-btn" data-val="4">4</button>
+                <button class="num-btn" data-val="5">5</button>
+                <button class="num-btn" data-val="6">6</button>
+                <button class="num-btn" data-val="7">7</button>
+                <button class="num-btn" data-val="8">8</button>
+                <button class="num-btn" data-val="9">9</button>
+                <button class="num-btn" data-val="C"
+                    style="background: rgba(255,255,255,0.15); color: var(--text-primary); font-weight: bold;">クリア</button>
+                <button class="num-btn" data-val="0">0</button>
+                <button class="num-btn" data-val="OK" style="display: none;">OK</button>
+            </div>
+
+            <button id="back-btn"
+                style="background:none; border:none; color:var(--text-secondary); margin-top:15px; cursor:pointer;">設定に戻る</button>
+        </div>
+
+        <!-- 結果画面（オプション） -->
+        <div id="result-screen" class="screen glass-panel" style="text-align:center; justify-content:center;">
+            <h2 style="font-size: 2rem; margin-bottom: 10px;">パーフェクト！</h2>
+            <p style="color:var(--text-secondary); margin-bottom:30px;">全問正解です！素晴らしい！</p>
+            <button id="restart-btn" class="action-btn">もう一度やる</button>
+        </div>
+
+        <!-- フィードバック演出 -->
+        <div id="feedback-overlay" class="feedback">⭕</div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,306 @@
+:root {
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --secondary-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+  --success-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  --error-gradient: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
+  --bg-color: #0f172a;
+  --card-bg: rgba(255, 255, 255, 0.05);
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --border-radius: 20px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow: hidden;
+  height: 100dvh;
+  /* 動的ビューポート対応 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-image:
+    radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
+    radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
+}
+
+.app-container {
+  width: 100%;
+  max-width: 480px;
+  height: 100dvh;
+  /* 動的ビューポート対応 */
+  position: relative;
+  padding: 10px;
+  /* 余白を少し削る */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius);
+}
+
+/* Header */
+header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 5px;
+}
+
+.sub-title {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Screen States */
+.screen {
+  position: absolute;
+  top: 70px;
+  /* 少し上げる */
+  left: 15px;
+  right: 15px;
+  bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+  transition: var(--transition);
+  overflow-y: auto;
+  /* コンテンツが多い場合にスクロール可能に */
+  scrollbar-width: none;
+  /* Firefox用 */
+  padding: 20px;
+}
+
+.screen::-webkit-scrollbar {
+  display: none;
+  /* Chrome/Safari用 */
+}
+
+.screen.active {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* Grid Layout for Selection */
+.selection-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+.dan-btn {
+  height: 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: var(--card-bg);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.dan-btn:hover,
+.dan-btn.selected {
+  background: var(--primary-gradient);
+  transform: scale(1.05);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+.dan-btn span:first-child {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.dan-btn span:last-child {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+/* Order Selection */
+.order-selection {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.order-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--card-bg);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.order-btn.selected {
+  background: var(--secondary-gradient);
+  color: #000;
+  font-weight: 700;
+}
+
+/* Quiz Screen */
+.quiz-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 20px;
+  text-align: center;
+}
+
+.problem {
+  font-size: 4rem;
+  font-weight: 800;
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -2px;
+}
+
+.answer-area {
+  font-size: 2.5rem;
+  font-weight: 700;
+  min-height: 1.5em;
+  color: var(--secondary-gradient);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Numpad */
+.numpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.num-btn {
+  padding: 15px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  border-radius: 12px;
+  border: none;
+  background: var(--glass-bg);
+  color: white;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.num-btn:active {
+  transform: scale(0.95);
+  background: var(--primary-gradient);
+}
+
+.action-btn {
+  width: 100%;
+  padding: 18px;
+  margin-top: 20px;
+  flex-shrink: 0;
+  /* 潰れないように固定 */
+  border-radius: 12px;
+  border: none;
+  background: var(--primary-gradient);
+  color: white;
+  font-weight: 700;
+  font-size: 1.2rem;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+/* Feedback Overlay */
+.feedback {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.5);
+  font-size: 8rem;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.feedback.active {
+  animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+
+  30% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.correct {
+  color: #43e97b;
+}
+
+.incorrect {
+  color: #ff0844;
+}
+
+/* Progress Bar */
+.progress-container {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  margin-bottom: 15px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: var(--success-gradient);
+  width: 0%;
+  transition: width 0.3s ease;
+}
