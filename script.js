@@ -104,11 +104,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (userAns === correctAns) {
             showFeedback(true);
             if (state.isVoiceEnabled) speak("正解！");
+
+            // 重要：次の問題へ行く前に現在の入力を空にする
+            state.userInput = '';
+
             state.currentIdx++;
             if (state.currentIdx >= state.problems.length) {
                 setTimeout(() => {
                     progressBar.style.width = '100%';
-                    if (state.isVoiceEnabled) speak("完璧です！おめでとう！");
+                    if (state.isVoiceEnabled) speak("完璧です！おめでどう！");
                     showScreen('result-screen');
                 }, 800);
             } else {
