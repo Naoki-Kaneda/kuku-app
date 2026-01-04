@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const state = {
         selectedDan: 1,
         selectedOrder: 'random', // 'random', 'asc', 'desc'
+        isVoiceEnabled: true,
         problems: [],
         currentIdx: 0,
         userInput: '',
@@ -39,9 +40,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. 順序選択
     orderBtns.forEach(btn => {
         btn.onclick = () => {
-            orderBtns.forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
-            state.selectedOrder = btn.dataset.order;
+            if (btn.dataset.order) {
+                document.querySelectorAll('.order-btn[data-order]').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                state.selectedOrder = btn.dataset.order;
+            } else if (btn.dataset.voice) {
+                document.querySelectorAll('.order-btn[data-voice]').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                state.isVoiceEnabled = btn.dataset.voice === 'true';
+            }
         };
     });
 
@@ -80,10 +87,27 @@ document.addEventListener('DOMContentLoaded', () => {
         problemText.textContent = p.q;
         answerDisplay.textContent = '?';
         state.userInput = '';
+        
+        // 読み上げ
+        if (state.isVoiceEnabled) {
+            const dan = p.q.split(' × ')[0];
+            const num = p.q.split(' × ')[1];
+            speak(`${dan} かける ${num} は？`);
+        }
 
         // プログレスバー更新
         const progress = (state.currentIdx / state.problems.length) * 100;
         progressBar.style.width = `${progress}%`;
+    }
+
+    // 音声読み上げ
+    function speak(text) {
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel(); // 前の音声を止める
+        const uttr = new SpeechSynthesisUtterance(text);
+        uttr.lang = 'ja-JP';
+        uttr.rate = 1.1; // 少し速めに
+        window.speechSynthesis.speak(uttr);
     }
 
     // 4. 入力処理
@@ -130,10 +154,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (userAns === correctAns) {
             showFeedback(true);
+            if (state.isVoiceEnabled) speak("正解！");
             state.currentIdx++;
             if (state.currentIdx >= state.problems.length) {
                 setTimeout(() => {
                     progressBar.style.width = '100%';
+                    if (state.isVoiceEnabled) speak("完璧です！おめでとう！");
                     showScreen('result-screen');
                 }, 800);
             } else {
@@ -141,6 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             showFeedback(false);
+            if (state.isVoiceEnabled) speak("おしい！");
             state.userInput = '';
             answerDisplay.textContent = '?';
         }
