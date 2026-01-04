@@ -22,49 +22,43 @@ document.addEventListener('DOMContentLoaded', () => {
     const backBtn = document.getElementById('back-btn');
     const restartBtn = document.getElementById('restart-btn');
 
-    // 1. 初期化: 段選択ボタン
-    for (let i = 1; i <= 9; i++) {
-        const btn = document.createElement('div');
-        btn.className = 'dan-btn' + (i === 1 ? ' selected' : '');
-        btn.innerHTML = `<span>${i}</span><span>の段</span>`;
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.dan-btn').forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
-            state.selectedDan = i;
-            if (state.isVoiceEnabled) speak(""); // エンジン起動用
-        });
-        danGrid.appendChild(btn);
+    // 1. 段選択ボタンの生成
+    function createDanButtons() {
+        danGrid.innerHTML = '';
+        for (let i = 1; i <= 9; i++) {
+            const btn = document.createElement('div');
+            btn.className = 'dan-btn' + (i === state.selectedDan ? ' selected' : '');
+            btn.innerHTML = `<span>${i}</span><span>の段</span>`;
+            btn.onclick = () => {
+                state.selectedDan = i;
+                document.querySelectorAll('.dan-btn').forEach(b => b.classList.toggle('selected', parseInt(b.innerText) === i));
+                if (state.isVoiceEnabled) speak(" "); // 無音でエンジンを活性化
+            };
+            danGrid.appendChild(btn);
+        }
     }
+    createDanButtons();
 
-    // 2. 初期化: 順序・音声設定（個別に管理）
-    function initSettings() {
-        // 順序ボタン
-        document.querySelectorAll('.order-btn[data-order]').forEach(btn => {
-            btn.addEventListener('click', () => {
+    // 2. 順序・音声設定（ボタンごとの独立性を担保）
+    document.querySelectorAll('.order-btn').forEach(btn => {
+        btn.onclick = () => {
+            if (btn.dataset.order) {
+                // 順序グループ内だけ切り替え
                 document.querySelectorAll('.order-btn[data-order]').forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
                 state.selectedOrder = btn.dataset.order;
-                if (state.isVoiceEnabled) speak("");
-            });
-        });
-
-        // 音声ボタン
-        document.querySelectorAll('.order-btn[data-voice]').forEach(btn => {
-            btn.addEventListener('click', () => {
+            } else if (btn.dataset.voice) {
+                // 音声グループ内だけ切り替え
                 document.querySelectorAll('.order-btn[data-voice]').forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
                 state.isVoiceEnabled = (btn.dataset.voice === 'true');
-                if (state.isVoiceEnabled) {
-                    speak("オンにしました");
-                } else {
-                    window.speechSynthesis.cancel();
-                }
-            });
-        });
-    }
-    initSettings();
+                if (state.isVoiceEnabled) speak("声をだします");
+            }
+            if (state.isVoiceEnabled) speak(" "); // 活性化
+        };
+    });
 
-    // 3. クイズロジック
+    // 3. クイズ進行
     startBtn.onclick = () => {
         state.problems = [];
         for (let i = 1; i <= 9; i++) {
@@ -77,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         state.currentIdx = 0;
+        state.userInput = '';
         showScreen('quiz-screen');
         updateProblem();
     };
@@ -99,20 +94,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function checkAnswer() {
         const correctAns = state.problems[state.currentIdx].a;
-        const userAns = parseInt(state.userInput);
+        const userAns = parseInt(state.userInput || "-1");
 
         if (userAns === correctAns) {
             showFeedback(true);
             if (state.isVoiceEnabled) speak("正解！");
 
-            // 重要：次の問題へ行く前に現在の入力を空にする
-            state.userInput = '';
-
+            state.userInput = ''; // 重要：次に進む前にクリア
             state.currentIdx++;
+
             if (state.currentIdx >= state.problems.length) {
                 setTimeout(() => {
                     progressBar.style.width = '100%';
-                    if (state.isVoiceEnabled) speak("完璧です！おめでどう！");
+                    if (state.isVoiceEnabled) speak("完璧です！おめでとう！");
                     showScreen('result-screen');
                 }, 800);
             } else {
@@ -126,19 +120,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 入力
+    // 入力ボタン
     document.querySelectorAll('.num-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.onclick = (e) => {
+            e.preventDefault();
             const val = btn.dataset.val;
             if (val === 'C') {
                 state.userInput = '';
                 answerDisplay.textContent = '?';
             } else if (val === 'OK') {
+                // 自動判定だが念のため残す
                 if (state.userInput) checkAnswer();
             } else {
                 if (state.userInput.length < 2) {
                     state.userInput += val;
                     answerDisplay.textContent = state.userInput;
+
                     const correctAns = state.problems[state.currentIdx].a;
                     if (parseInt(state.userInput) === correctAns) {
                         checkAnswer();
@@ -147,24 +144,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             }
-        });
+        };
     });
 
-    // 音声エンジン
+    // 音声エンジン（堅牢版）
     function speak(text) {
         if (!window.speechSynthesis) return;
+
+        // ブラウザのフリーズを防ぐために一端キャンセル
         window.speechSynthesis.cancel();
-        if (!text) return;
 
         const uttr = new SpeechSynthesisUtterance(text);
         uttr.lang = 'ja-JP';
         uttr.rate = 1.2;
 
-        // 音声リスト読み込み待ち対応
+        // 音声リスト読み込み（Chrome/Android対策）
         const voices = window.speechSynthesis.getVoices();
-        const jaVoice = voices.find(v => v.lang.includes('ja'));
+        const jaVoice = voices.find(v => v.lang.includes('ja')) || voices[0];
         if (jaVoice) uttr.voice = jaVoice;
 
+        // 再生直前に resume を呼ぶ（停止対策）
         window.speechSynthesis.resume();
         window.speechSynthesis.speak(uttr);
     }
@@ -175,13 +174,22 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById(id).classList.add('active');
     }
 
-    backBtn.onclick = () => showScreen('setup-screen');
-    restartBtn.onclick = () => showScreen('setup-screen');
+    backScreen = () => showScreen('setup-screen');
+    backBtn.onclick = backScreen;
+    restartBtn.onclick = backScreen;
 
-    // PWA登録
+    // サービスワーカー（強制更新）
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('service-worker.js').catch(() => { });
+        navigator.serviceWorker.register('service-worker.js').then(reg => {
+            reg.onupdatefound = () => {
+                const installingWorker = reg.installing;
+                installingWorker.onstatechange = () => {
+                    if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        // 更新があったら自動リロード
+                        window.location.reload();
+                    }
+                };
+            };
         });
     }
 });
