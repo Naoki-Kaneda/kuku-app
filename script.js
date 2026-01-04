@@ -12,7 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // DOM要素
     const danGrid = document.getElementById('dan-selection');
-    const orderBtns = document.querySelectorAll('.order-btn');
     const startBtn = document.getElementById('start-btn');
     const setupScreen = document.getElementById('setup-screen');
     const quizScreen = document.getElementById('quiz-screen');
@@ -39,22 +38,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. 順序・音声設定のハンドリング
     function setupToggleButtons() {
+        // 順序ボタン（互いに影響しないように属性で分ける）
         const orderButtons = document.querySelectorAll('.order-btn[data-order]');
         orderButtons.forEach(btn => {
             btn.onclick = () => {
                 orderButtons.forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
                 state.selectedOrder = btn.dataset.order;
+                if (state.isVoiceEnabled) speak(""); // 音声エンジンのアクティベート
             };
         });
 
+        // 音声ボタン
         const voiceButtons = document.querySelectorAll('.order-btn[data-voice]');
         voiceButtons.forEach(btn => {
             btn.onclick = () => {
                 voiceButtons.forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
                 state.isVoiceEnabled = btn.dataset.voice === 'true';
-                if (state.isVoiceEnabled) speak("オン");
+                if (state.isVoiceEnabled) {
+                    speak("オン");
+                } else {
+                    window.speechSynthesis.cancel();
+                }
             };
         });
     }
@@ -112,24 +118,21 @@ document.addEventListener('DOMContentLoaded', () => {
     function speak(text) {
         if (!window.speechSynthesis) return;
 
-        // ブラウザの音声再生制限を回避するためのリセット
-        if (speechSynthesis.paused) {
-            speechSynthesis.resume();
-        }
+        // 音声合成の中断を回避（Chrome/Android対策）
         window.speechSynthesis.cancel();
 
         const uttr = new SpeechSynthesisUtterance(text);
         uttr.lang = 'ja-JP';
-        uttr.rate = 1.1;
+        uttr.rate = 1.2;
+        uttr.pitch = 1.0;
 
-        // 利用可能な音声が読み込まれるまで待つ必要があるブラウザ向けの対策
-        const voices = speechSynthesis.getVoices();
-        if (voices.length > 0) {
-            // 日本語の音声を探す
-            const jaVoice = voices.find(v => v.lang.includes('ja-JP')) || voices.find(v => v.lang.includes('ja'));
-            if (jaVoice) uttr.voice = jaVoice;
-        }
+        // 日本語音声を探してセット（より確実に喋らせるため）
+        const voices = window.speechSynthesis.getVoices();
+        const jaVoice = voices.find(v => v.lang === 'ja-JP' || v.lang === 'ja_JP');
+        if (jaVoice) uttr.voice = jaVoice;
 
+        // 再生直前に resume を呼ぶ（ブラウザの停止対策）
+        window.speechSynthesis.resume();
         window.speechSynthesis.speak(uttr);
     }
 
